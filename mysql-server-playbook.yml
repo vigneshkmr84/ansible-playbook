@@ -1,0 +1,52 @@
+# Author - Vignesh
+# MySQL-Server package installation
+---
+  - name: Play-book to install multiple packages
+    hosts: "{{ host_var | default('linux') }}"
+    vars:
+      mysql_version: "{{ version | default('mysql80-community-release-el7-3.noarch.rpm') }}"
+      packages:
+        - wget
+        - python-pip
+        - telnet
+        - nmap
+        - MySQL-python
+    tasks:
+      - name: Update Existing packages to lastest version
+        yum:
+          name: "*"
+          state: latest
+      - name: Install epel-release package
+        yum:
+          name: epel-release
+          state: latest
+      - name: Install Necessary packages
+        yum :
+          name: "{{ packages }}"
+          state: latest
+      - name: Download rpm for mysql-server (will download the rpm in /tmp folder )
+        shell: wget "https://dev.mysql.com/get/{{mysql_version}}"  -P /tmp/
+      - name: Install rpm to add repo-details into yum repositories
+        yum:
+          name: "/tmp/{{mysql_version}}"
+          state: present
+      - name: Install MySQL server
+        yum:
+          name: mysql-server
+          state: present
+      - name: Start MySQL Server service
+        service:
+          name: mysqld
+          state: started
+        register: service_start_status
+      - name: MySQL Service Start Status
+        debug:
+          var: service_start_status
+      - name: Extract root password from /var/log/mysqld.log
+        shell: grep 'temporary password' /var/log/mysqld.log | cut -d ":" -f 4 | cut -d " " -f 2
+        register: mysql_root_password
+      - debug:
+          var: "{{mysql_root_password}}"
+      - name: Sets the root password 
+        mysql_user: user=root password="admin" host=localhost
+          

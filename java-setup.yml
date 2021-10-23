@@ -1,0 +1,22 @@
+# Author - Vignesh
+# WARNING : PLEASE PROCEED WITH CAUTION
+# Play-book will backup netfilter and flush all the firewall rules
+# - no Firewall on any port or IP exists
+---
+  - name: Java package installation
+    hosts: "{{ host_var | default('linux') }}"
+    tasks: 
+      - name: install java
+        yum: 
+          name: java-1.8.0-openjdk.x86_64
+          state: latest
+      - name: Java Version Check 
+        shell: java -version
+      - name: Updating bashrc file
+        lineinfile:
+          #path: ~./bashrc
+          path: /etc/bashrc
+           block : | 
+             export JRE_HOME=/usr/lib/jvm/jre
+             export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk
+             PATH=$PATH:$JRE_HOME:$JAVA_HOME

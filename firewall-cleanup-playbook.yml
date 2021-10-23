@@ -1,0 +1,26 @@
+# Author - Vignesh
+# WARNING : PLEASE PROCEED WITH CAUTION
+# Play-book will backup netfilter and flush all the firewall rules
+# - no Firewall on any port or IP exists
+---
+  - name: firewall-cleanup-playbook
+    hosts: "{{ host_var | default('linux') }}"
+    tasks:
+      - name: Backup Netfilter Rules
+        shell: iptables-save > /root/ipv4.rules && ip6tables-save > /root/ipv6.rules
+      - name: Flush the firewall rules
+        iptables:
+          flush: true
+      #- debug: 
+      #  var: ansible_os_family
+  - name: Update all default packages
+    hosts: "{{ host_var | default('linux') }}"
+    tasks: 
+      - name: Update all existing packages
+        yum: 
+          name: "*"
+          state: latest
+      - name: Install epel-release package
+        yum: 
+          name: epel-release
+          state: latest
