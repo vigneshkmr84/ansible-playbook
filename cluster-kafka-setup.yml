@@ -1,0 +1,74 @@
+# Author - Vignesh
+# This setup is a single node kafka on an VM
+---
+  - name: Kafka Cluster Setup
+    hosts: "{{ host_var | default('zookeeper') }}"
+    vars:
+      kafka_version: "{{ kafka_version_var | default('kafka_2.13-3.0.0') }}"
+      java_version: "{{java_version_var | default('java-1.8.0-openjdk.x86_64') }}"
+      kafka_install_dir: "{{ kafka_install_dir_var | default('/opt') }}"
+      kafka_download_dir: "{{kafka_download_dir_var | default('/tmp')}}"
+      zookeeper_host: "{{zookeeper_host_var | default('')}}"
+      kafka_host: "{{kafka_host_var | default('')}}"
+      kafka_log_folder: "{{kafka_log_folder_var | default('/tmp/kafka-logs')}}"
+      kafka_broker_port: "{{kafka_broker_port_var | default('9092')}}"
+      kafka_home_dir: "{{kafka_install_dir}}/{{kafka_version}}"
+      zookeeper_port : "{{zookeeper_port_var | default('2181')}}"
+    tasks: 
+      - name: Install java "{{ java_version }}"
+        yum: 
+          name: "{{ java_version }}"
+          state: latest
+      - name: Java Version Check 
+        shell: java -version
+        register: command_output
+      - debug: 
+          var: command_output.stdout_lines
+      - name: "Download Kafka Package - Version : {{ kafka_version }}"
+        get_url:
+            url: "https://dlcdn.apache.org/kafka/3.0.0/{{kafka_version}}.tgz"
+            dest: "{{kafka_download_dir}}"
+            mode: '755'
+      - name: Download check
+        shell: ls -lrt "{{kafka_download_dir}}"
+        register: op1
+      - debug:
+          var: op1.stdout_lines
+      - name: Unarchive kafka package
+        unarchive:
+          src: "{{kafka_download_dir}}/{{kafka_version}}.tgz"
+          dest: "{{kafka_install_dir}}"
+          remote_src: yes
+###########################################################################################################################################################
+      - name: "Initiate ZooKeeper (default port and configuration) - KAFKA_HOME : {{kafka_home_dir}}"
+        shell: "nohup bash {{kafka_home_dir}}/bin/zookeeper-server-start.sh {{kafka_home_dir}}/config/zookeeper.properties &"
+      - name: Sleep
+        shell: sleep 5s  
+      - name: Check if ZooKeeper Started properly
+        wait_for:
+          host: localhost
+          port: "{{zookeeper_port}}"
+          state: started
+          delay: 1             
+          timeout: 5       
+      - name: Update Kafka Broker Listener Properties
+        lineinfile: 
+          dest: "{{kafka_home_dir}}/config/server.properties"
+          regexp: '^#\s*listeners=PLAINTEXT://:9092*$'
+          line: 'listeners=PLAINTEXT://{{zookeeper_host}}:{{kafka_broker_port}}'
+      - name: "Initiate Kafka-Broker (default port and configuration) - KAFKA_HOME : {{kafka_home_dir}}"
+        shell: "nohup bash {{kafka_home_dir}}/bin/kafka-server-start.sh {{kafka_home_dir}}/config/server.properties &"
+      - name: Check if Broker Started properly
+        wait_for:
+          host: localhost
+          port: "{{kafka_broker_port}}"
+          state: started
+          delay: 1             
+          timeout: 5
+      - name: Delete "{{kafka_download_dir}}/{{ kafka_download_dir }}.tgz" file
+        file:
+          path: "{{kafka_download_dir}}/{{ zookeeper_package }}.tgz"
+          state: absent
+  - name: Kafka Broker Setup  
+
+

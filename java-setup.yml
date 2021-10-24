@@ -12,11 +12,8 @@
           state: latest
       - name: Java Version Check 
         shell: java -version
-      - name: Updating bashrc file
-        lineinfile:
-          #path: ~./bashrc
-          path: /etc/bashrc
-           block : | 
-             export JRE_HOME=/usr/lib/jvm/jre
-             export JAVA_HOME=/usr/lib/jvm/jre-1.8.0-openjdk
-             PATH=$PATH:$JRE_HOME:$JAVA_HOME
+        register: command_output
+      - debug: 
+          #msg="{{ command_output.stdout }}"
+          var: command_output.stdout_lines
+      
