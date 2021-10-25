@@ -1,0 +1,5 @@
+# Delete kafka zip downloaded
+- name: Delete "{{kafka_download_dir}}/{{kafka_version}}.tgz" file
+    file:
+    path: "{{kafka_download_dir}}/{{ kafka_version }}.tgz"
+    state: absent

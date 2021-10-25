@@ -1,0 +1,50 @@
+# Author - Vignesh
+# Playbook will setup both Single Node Or Multi Node Kafka Cluster based on configuration
+# All ports are left to be on default ones - if needed provide custom ports
+---
+  - name: Kafka Single Node Setup
+    hosts: "{{ host_var | default('linux') }}"
+    vars:
+      java_version: "{{java_version_var | default('java-1.8.0-openjdk.x86_64') }}"
+      kafka_version: "{{ kafka_version_var | default('kafka_2.13-3.0.0') }}"
+
+      kafka_install_dir: "{{ kafka_install_dir_var | default('/opt') }}"
+      kafka_download_dir: "{{kafka_download_dir_var | default('/tmp')}}"
+      kafka_home_dir: "{{kafka_install_dir}}/{{kafka_version}}"
+
+      zookeeper_host: "{{zookeeper_host_var | default('')}}"
+      zookeeper_port : "{{zookeeper_port_var | default('2181')}}"
+
+      kafka_log_folder: "{{kafka_log_folder_var | default('/tmp/kafka-logs')}}"
+      kafka_host: "{{kafka_host_var | default('')}}"
+
+      kafka_broker_port: "{{kafka_broker_port_var | default('9092')}}"
+
+    tasks: 
+      - name: Open-All ports 
+        include: firewall-cleanup-task.yml
+
+      - name: Java Installation
+        include: java-install-task.yml
+
+      - name: Download & install Kafka
+        include: kafka-package-installation-task.yml
+
+      - name: "Initiate ZooKeeper"
+        include: zookeeper-start-task.yml     
+        when: inventory_hostname in groups['zookeeper']
+
+      - name: "Broker ID Creation"
+        include: broker-id-creation-task.yml
+        when: inventory_hostname in groups['brokers']
+
+      - name: Update Broker properties
+        include: update-broker-properties.yml
+        when: inventory_hostname in groups['brokers']
+
+      - name: Initiate Broker service
+        include: broker-start-task.yml
+        when: inventory_hostname in groups['brokers']
+
+      - name: "Cleanup Tasks"
+        include: cleanup.yml

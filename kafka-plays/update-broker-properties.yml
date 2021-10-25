@@ -1,0 +1,32 @@
+# tasks to update kafka broker properties
+- name: Set hostname value
+  shell: hostname 2>&1 
+  register: host_name
+
+- name: Update Kafka Broker Listener Properties
+  lineinfile: 
+    dest: "{{kafka_home_dir}}/config/server.properties"
+    regexp: '^#\s*listeners=PLAINTEXT://:9092*$'
+    line: 'listeners=PLAINTEXT://{{inventory_hostname}}:{{kafka_broker_port}}'
+      
+- name: Update kafka logs dir - {{kafka_log_folder}}
+  lineinfile:
+    dest: "{{kafka_home_dir}}/config/server.properties"
+    regexp: '^\s*log.dirs=/tmp/kafka-logs*$'
+    line: 'log.dirs={{kafka_log_folder}}'
+
+- name: Update zookeeper.connect value
+  lineinfile:
+    dest: "{{kafka_home_dir}}/config/server.properties"
+    regexp: '^\s*zookeeper.connect=localhost:2181*$'
+    line: 'zookeeper.connect={{zookeeper_host}}:{{zookeeper_port}}'
+
+- name: Set Broker id variable
+  shell: cat "/tmp/broker.id" 2>&1 
+  register: broker_id
+
+- name: Update broker.id variable in server property  
+  lineinfile:
+    dest: "{{kafka_home_dir}}/config/server.properties"
+    regexp: '^\s*broker.id=0*$'
+    line: 'broker.id={{broker_id.stdout}}' 

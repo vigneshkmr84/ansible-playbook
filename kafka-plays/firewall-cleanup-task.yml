@@ -1,0 +1,5 @@
+    - name: Backup Netfilter Rules
+      shell: iptables-save > /root/ipv4.rules && ip6tables-save > /root/ipv6.rules
+    - name: Flush the firewall rules
+      iptables:
+        flush: true

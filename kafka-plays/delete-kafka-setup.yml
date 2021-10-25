@@ -1,0 +1,54 @@
+# Author - Vignesh
+# Playbook to delete all the installations, broker.id 
+# terminate the processes on the given set of machines
+---
+  - name: Delete Kafka Setup
+    hosts: "{{ host_var | default('linux') }}"
+    vars:
+      java_version: "{{java_version_var | default('java-1.8.0-openjdk.x86_64') }}"
+      kafka_version: "{{ kafka_version_var | default('kafka_2.13-3.0.0') }}"
+      
+      kafka_install_dir: "{{ kafka_install_dir_var | default('/opt') }}"
+      kafka_download_dir: "{{kafka_download_dir_var | default('/tmp')}}"
+      kafka_home_dir: "{{kafka_install_dir}}/{{kafka_version}}"
+
+      kafka_host: "{{kafka_host_var | default('')}}"
+      kafka_broker_port: "{{kafka_broker_port_var | default('9092')}}"
+      
+      zookeeper_host: "{{zookeeper_host_var | default('')}}"
+      zookeeper_port : "{{zookeeper_port_var | default('2181')}}"
+      
+      kafka_log_folder: "{{kafka_log_folder_var | default('/tmp/kafka-logs')}}"
+      zookeeper_log_folder: "{{zookeeper_log_folder | default('/tmp/zookeeper')}}"
+    tasks: 
+      - name: Find Kafka Files
+        find:
+          paths: "{{kafka_install_dir}}"
+          patterns: "kafka*"
+        register: result
+      - name: Delete installation Directories, Logs, broker id file
+        file:
+          state: absent
+          path: "{{item}}"
+        with_items: 
+          - "/tmp/zookeeper"
+          - "/opt/kafka_*"
+          - "/opt/kafka-logs"
+          - "/tmp/broker.id"  
+       
+      - name: Kill Processes running Zookeeper
+        shell: "ps -elf | grep -i '[z]ookeeper.properties' | awk  '{ print $4 }' | xargs kill -9"
+        when: inventory_hostname in groups['zookeeper']
+       
+      - name: Kill Processes running Kafka Brokers
+        shell: "ps -elf | grep -i '[s]erver.properties' | awk  '{ print $4 }' | xargs kill -9" 
+        when: inventory_hostname in groups['brokers']
+      
+      #- name: Delete Kafka-Broker & ZooKeeper log folder
+      #  shell: rm -rf '{{kafka_log_folder}}' && rm -rf '{{zookeeper_log_folder}}'
+      #    state: absent
+      #    path: "{{kafka_log_folder}}"
+      #- name: Delete Zookeeper log folder
+      #  file:
+      #    state: absent
+      #    path: {{zookeeper_log_folder}}

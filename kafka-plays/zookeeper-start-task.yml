@@ -1,0 +1,14 @@
+# Initiate ZooKeeper and check for status
+- name: "Initiate ZooKeeper (default port and configuration) - KAFKA_HOME : {{kafka_home_dir}}"
+  shell: "nohup bash {{kafka_home_dir}}/bin/zookeeper-server-start.sh {{kafka_home_dir}}/config/zookeeper.properties &"
+      
+- name: Sleep
+  shell: sleep 5s  
+      
+- name: Check if ZooKeeper Started properly
+  wait_for:
+    host: localhost
+    port: "{{zookeeper_port}}"
+    state: started
+    delay: 1             
+    timeout: 5 

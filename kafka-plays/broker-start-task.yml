@@ -1,0 +1,17 @@
+# initiate kafka broker service
+- name: "Initiate Kafka-Broker"
+  shell: "bash {{kafka_home_dir}}/bin/kafka-server-start.sh -daemon {{kafka_home_dir}}/config/server.properties"
+      
+- name: Sleep
+  shell: sleep 5s  
+      
+- name: Check if Broker Service is running on port "{{kafka_broker_port}}"
+  # wait_for:
+  #   host: localhost
+  #   port: "{{kafka_broker_port}}"
+  #   state: started
+  #   delay: 5             
+  #   timeout: 10
+  command: netstat -tnpl | grep -i "{{kafka_broker_port}}"
+  register: command_op
+  failed_when: command_op.rc != 0

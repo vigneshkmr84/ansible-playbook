@@ -1,0 +1,17 @@
+- name: "Download Kafka Package - Version : {{ kafka_version }}"
+  get_url:
+     url: "https://dlcdn.apache.org/kafka/3.0.0/{{kafka_version}}.tgz"
+     dest: "{{kafka_download_dir}}"
+     mode: '755'
+- name: Download check
+  shell: ls -lrt "{{kafka_download_dir}}"
+  register: op1
+
+- debug:
+    var: op1.stdout_lines
+
+- name: Unarchive kafka package
+  unarchive:
+    src: "{{kafka_download_dir}}/{{kafka_version}}.tgz"
+    dest: "{{kafka_install_dir}}"
+    remote_src: yes

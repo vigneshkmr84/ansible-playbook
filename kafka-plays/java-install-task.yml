@@ -1,0 +1,11 @@
+- name: Install java Version - "{{ java_version }}"
+  yum: 
+    name: "{{ java_version }}"
+    state: latest
+
+- name: Java Version Check 
+  shell: java -version 2>&1 
+  register: java_result 
+  
+- debug: 
+    msg: "{{ java_result.stdout_lines }}"

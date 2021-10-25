@@ -1,0 +1,11 @@
+- name: Broker ID Creation for Each Node
+  copy:
+    dest: "/tmp/broker.id"
+    content: "{{ play_hosts.index(inventory_hostname) }}"
+
+- name: Capture the Broker IDs
+  shell: cat "/tmp/broker.id" 2>&1 
+  register: java_result
+
+- debug: 
+    msg: "Broker id - host {{inventory_hostname}} = {{java_result.stdout_lines}}"

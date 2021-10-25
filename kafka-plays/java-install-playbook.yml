@@ -1,0 +1,18 @@
+# Author - Vignesh
+# Playbook to install java
+---
+  - name: Java package installation
+    hosts: "{{ host_var | default('linux') }}"
+    vars:
+      java_version: "{{java_version_var | default('java-1.8.0-openjdk.x86_64') }}"
+    tasks: 
+      - name: Install java "{{ java_version }}"
+        yum: 
+          name: "{{ java_version }}"
+          state: latest
+
+      - name: Java Version Check 
+        shell: java -version 2>&1 
+        register: java_result 
+      - debug: 
+          msg: "{{ java_result.stdout_lines }}"
