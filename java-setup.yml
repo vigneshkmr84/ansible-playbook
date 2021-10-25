@@ -1,7 +1,5 @@
 # Author - Vignesh
-# WARNING : PLEASE PROCEED WITH CAUTION
-# Play-book will backup netfilter and flush all the firewall rules
-# - no Firewall on any port or IP exists
+# Play-book will install java 1.8
 ---
   - name: Java package installation
     hosts: "{{ host_var | default('linux') }}"
